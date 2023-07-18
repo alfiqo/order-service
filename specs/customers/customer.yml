@@ -201,7 +201,7 @@ components:
             - female
         dob:
           type: string
-          example: "01-12-1990"
+          example: "1990-12-01"
         phone:
           type: string
           example: "081212343456"
@@ -225,7 +225,7 @@ components:
             - female
         dob:
           type: string
-          example: "01-12-1990"
+          example: "1990-12-01"
         phone:
           type: string
           example: "081212343456"
