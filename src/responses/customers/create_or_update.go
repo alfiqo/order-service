@@ -11,7 +11,7 @@ type CreateResponse struct {
 	Data    CustomerResponse `json:"data"`
 }
 
-func NewCreateResponse(model *models.Customer) CreateResponse {
+func NewCreateOrUpdateResponse(model *models.Customer) CreateResponse {
 	var response CreateResponse
 
 	response.Code = http.StatusOK

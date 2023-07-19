@@ -95,10 +95,10 @@ func Create(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, response.NewCreateResponse(&customer))
+	context.JSON(http.StatusOK, response.NewCreateOrUpdateResponse(&customer))
 }
 
-func GetDetail(context *gin.Context) {
+func Detail(context *gin.Context) {
 	var customer models.Customer
 
 	id := context.Param("id")
@@ -110,6 +110,57 @@ func GetDetail(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, response.NewDetailResponse(&customer))
+}
+
+func Update(context *gin.Context) {
+	var customer, data models.Customer
+
+	id := context.Param("id")
+	err := db.Where("id = ?", id).First(&data).Error
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		context.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := context.ShouldBindJSON(&customer); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	eg, _ := errgroup.WithContext(context)
+	if customer.DOB != nil {
+		eg.Go(func() error {
+			ok := utils.ValidateDateFormat(*customer.DOB)
+			if !ok {
+				return errors.New(utils.DateFormatInvalid)
+			}
+			return nil
+		})
+	}
+	if customer.Email != data.Email {
+		eg.Go(func() error {
+			db := db.Where("email = ?", customer.Email).Session(&gorm.Session{})
+			err := db.First(&data).Error
+			if err != nil && err == gorm.ErrRecordNotFound {
+				return nil
+			}
+			return errors.New(utils.EmailRegistered)
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	customer.ID = data.ID
+	result := db.Updates(&customer)
+	if result.Error != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
+		return
+	}
+
+	context.JSON(http.StatusOK, response.NewCreateOrUpdateResponse(&customer))
 }
 
 func Delete(context *gin.Context) {
