@@ -1,8 +1,7 @@
 package models
 
 import (
-	"html"
-	"strings"
+	"order-service/utils"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -15,15 +14,23 @@ type User struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func (u *User) BeforeSave() error {
+func VerifyPassword(password, hashedPassword string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
+func LoginCheck(user *User, password string) (token string, err error) {
+
+	err = VerifyPassword(password, user.Password)
+
+	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
+		return "", err
 	}
-	u.Password = string(hashedPassword)
-	u.Username = html.EscapeString(strings.TrimSpace(u.Username))
 
-	return nil
+	token, err = utils.GenerateToken(user.ID)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 
 }
