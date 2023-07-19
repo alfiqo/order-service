@@ -8,6 +8,7 @@ import (
 	"order-service/src/responses"
 	response "order-service/src/responses/customers"
 	"order-service/utils"
+	"order-service/utils/constant"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -71,7 +72,7 @@ func Create(context *gin.Context) {
 		eg.Go(func() error {
 			ok := utils.ValidateDateFormat(*customer.DOB)
 			if !ok {
-				return errors.New(utils.DateFormatInvalid)
+				return errors.New(constant.DateFormatInvalid)
 			}
 			return nil
 		})
@@ -81,7 +82,7 @@ func Create(context *gin.Context) {
 		if exist.Error != nil && exist.Error == gorm.ErrRecordNotFound {
 			return nil
 		}
-		return errors.New(utils.EmailRegistered)
+		return errors.New(constant.EmailRegistered)
 	})
 
 	if err := eg.Wait(); err != nil {
@@ -132,7 +133,7 @@ func Update(context *gin.Context) {
 		eg.Go(func() error {
 			ok := utils.ValidateDateFormat(*customer.DOB)
 			if !ok {
-				return errors.New(utils.DateFormatInvalid)
+				return errors.New(constant.DateFormatInvalid)
 			}
 			return nil
 		})
@@ -144,7 +145,7 @@ func Update(context *gin.Context) {
 			if err != nil && err == gorm.ErrRecordNotFound {
 				return nil
 			}
-			return errors.New(utils.EmailRegistered)
+			return errors.New(constant.EmailRegistered)
 		})
 	}
 

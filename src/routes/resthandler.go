@@ -23,5 +23,7 @@ func NewRoutes() {
 	v1.PUT("customers/:id", controllers.Update)
 	v1.DELETE("customers/:id", controllers.Delete)
 
+	v1.POST("/register", controllers.Register)
+
 	route.Run()
 }

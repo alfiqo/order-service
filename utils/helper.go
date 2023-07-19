@@ -18,7 +18,7 @@ func Paginate(value interface{}, pagination *responses.Meta, db *gorm.DB) func(d
 	db.Model(value).Count(&totalRows)
 
 	pagination.TotalData = totalRows
-	totalPages := int(math.Ceil(float64(totalRows) / float64(pagination.PerPage)))
+	totalPages := int(math.Ceil(float64(totalRows) / float64(pagination.GetPerPage())))
 	pagination.MaxPage = totalPages
 
 	return func(db *gorm.DB) *gorm.DB {

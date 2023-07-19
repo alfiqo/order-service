@@ -1,0 +1,396 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "Customers",
+        "description": "API for Customer Resource",
+        "version": "1.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080/api/v1"
+        }
+    ],
+    "paths": {
+        "/customers": {
+            "get": {
+                "tags": [
+                    "Customer"
+                ],
+                "summary": "Get All Customer",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "perPage",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "search",
+                        "description": "Search by email or name",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "examples": {
+                            "name": {
+                                "value": "jhon doe"
+                            },
+                            "email": {
+                                "value": "jhon@example.com"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Get All Customer Response",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "success": {
+                                        "description": "Success Response"
+                                    },
+                                    "failed": {
+                                        "description": "Data Not Found",
+                                        "value": {
+                                            "code": 200,
+                                            "message": "success",
+                                            "meta": {
+                                                "page": 1,
+                                                "perPage": 10,
+                                                "maxPage": 1,
+                                                "totalData": 0
+                                            },
+                                            "data": []
+                                        }
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/customerListReponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Customer"
+                ],
+                "summary": "Create a new customer",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/createOrUpdateCustomer"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success Create Customer Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/customerResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/{id}": {
+            "get": {
+                "tags": [
+                    "Customer"
+                ],
+                "summary": "Get Customer By ID",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/customerIdInPath"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success Get Customer By ID Response",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "success": {
+                                        "description": "Success Response"
+                                    },
+                                    "failed": {
+                                        "description": "Data Not Found",
+                                        "value": {
+                                            "code": 404,
+                                            "message": "data not found",
+                                            "data": null
+                                        }
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/customerResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Customer"
+                ],
+                "summary": "Update Customer By ID",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/customerIdInPath"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/createOrUpdateCustomer"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success Update Customer Response",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "success": {
+                                        "description": "Success Response"
+                                    },
+                                    "failed": {
+                                        "description": "Data Not Found",
+                                        "value": {
+                                            "code": 404,
+                                            "message": "data not found",
+                                            "data": null
+                                        }
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "#/components/schemas/customerResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Customer"
+                ],
+                "summary": "Delete Customer By ID",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/customerIdInPath"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "success": {
+                                        "description": "Success Response"
+                                    },
+                                    "failed": {
+                                        "description": "Data Not Found",
+                                        "value": {
+                                            "code": 404,
+                                            "message": "data not found"
+                                        }
+                                    }
+                                },
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "success"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "parameters": {
+            "customerIdInPath": {
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "schema": {
+                    "type": "integer"
+                }
+            }
+        },
+        "schemas": {
+            "meta": {
+                "type": "object",
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "perPage": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "maxPage": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "totalData": {
+                        "type": "integer",
+                        "example": 50
+                    }
+                }
+            },
+            "customer": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "fullname": {
+                        "type": "string",
+                        "example": "Jhon Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "jhondoe@example.com"
+                    },
+                    "gender": {
+                        "type": "string",
+                        "enum": [
+                            "male",
+                            "female"
+                        ]
+                    },
+                    "dob": {
+                        "type": "string",
+                        "example": "1990-12-01"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "081212343456"
+                    },
+                    "address": {
+                        "type": "string",
+                        "example": "Jalanin Test DBO, Gambir, Jakarta Pusat, DKI Jakarta"
+                    }
+                }
+            },
+            "createOrUpdateCustomer": {
+                "type": "object",
+                "properties": {
+                    "fullname": {
+                        "type": "string",
+                        "example": "Jhon Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "jhondoe@example.com"
+                    },
+                    "gender": {
+                        "type": "string",
+                        "enum": [
+                            "male",
+                            "female"
+                        ]
+                    },
+                    "dob": {
+                        "type": "string",
+                        "example": "1990-12-01"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "081212343456"
+                    },
+                    "address": {
+                        "type": "string",
+                        "example": "Jalanin Test DBO, Gambir, Jakarta Pusat, DKI Jakarta"
+                    }
+                },
+                "required": [
+                    "fullname",
+                    "email",
+                    "gender"
+                ]
+            },
+            "customerListReponse": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "example": 200
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "success"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/meta"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/customer"
+                        }
+                    }
+                }
+            },
+            "customerResponse": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "example": 200
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "success"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/customer"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -10,5 +10,5 @@ CREATE TABLE customers (
     created_at TIMESTAMP NOT NULL,
     deleted_at DATETIME,
 
-    UNIQUE(id)
+    UNIQUE(email)
 ) ENGINE = InnoDB;
