@@ -6,8 +6,8 @@ CREATE TABLE customers (
     dob DATE DEFAULT NULL,
     phone VARCHAR(15),
     address TEXT,
-    updated_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at DATETIME,
 
     UNIQUE(email)

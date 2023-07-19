@@ -7,8 +7,8 @@ CREATE TABLE orders (
     price float(50) NOT NULL,
     discount float(50) NOT NULL,
     status char(10),
-    updated_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at DATETIME
 
 ) ENGINE = InnoDB;
