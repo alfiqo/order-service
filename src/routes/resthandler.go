@@ -17,6 +17,7 @@ func NewRoutes() {
 
 	v1 := route.Group("/api/v1")
 
+	v1.GET("customers", controllers.GetAll)
 	v1.POST("customers", controllers.Create)
 
 	route.Run()
