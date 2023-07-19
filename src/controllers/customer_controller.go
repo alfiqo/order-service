@@ -97,3 +97,17 @@ func Create(context *gin.Context) {
 
 	context.JSON(http.StatusOK, response.NewCreateResponse(&customer))
 }
+
+func GetDetail(context *gin.Context) {
+	var customer models.Customer
+
+	id := context.Param("id")
+
+	err := db.Where("id = ?", id).First(&customer).Error
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		context.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, response.NewDetailResponse(&customer))
+}

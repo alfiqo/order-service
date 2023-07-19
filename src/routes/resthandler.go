@@ -19,6 +19,7 @@ func NewRoutes() {
 
 	v1.GET("customers", controllers.GetAll)
 	v1.POST("customers", controllers.Create)
+	v1.GET("customers/:id", controllers.GetDetail)
 
 	route.Run()
 }
