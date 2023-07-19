@@ -16,26 +16,34 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-var db *gorm.DB = config.NewDB()
+type CustomerController struct {
+	DB *gorm.DB
+}
 
-func GetAll(context *gin.Context) {
+func NewCustomerController() CustomerController {
+	return CustomerController{
+		DB: config.NewDB(),
+	}
+}
+
+func (c *CustomerController) GetAll(context *gin.Context) {
 	var customers, data []*models.Customer
 	var meta responses.Meta
 	search := context.Query("search")
+	db := c.DB
 
 	if err := context.Bind(&meta); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if search != "" {
-		db = db.Where("fullname LIKE ? or email LIKE ?", "%"+search+"%", "%"+search+"%").Session(&gorm.Session{})
-	}
-
 	eg, _ := errgroup.WithContext(context)
 
 	eg.Go(func() error {
-		err := db.Scopes(utils.Paginate(customers, &meta, db)).Find(&customers).Error
+		if search != "" {
+			db = c.DB.Where("fullname LIKE ? or email LIKE ?", "%"+search+"%", "%"+search+"%")
+		}
+		err := db.Scopes(utils.Paginate(customers, &meta, c.DB)).Find(&customers).Error
 		if err != nil {
 			return errors.New(err.Error())
 		}
@@ -43,6 +51,9 @@ func GetAll(context *gin.Context) {
 	})
 
 	eg.Go(func() error {
+		if search != "" {
+			db = c.DB.Where("fullname LIKE ? or email LIKE ?", "%"+search+"%", "%"+search+"%")
+		}
 		err := db.Find(&data).Error
 		if err != nil {
 			return errors.New(err.Error())
@@ -58,7 +69,7 @@ func GetAll(context *gin.Context) {
 	context.JSON(http.StatusOK, response.NewListResponse(customers, &meta))
 }
 
-func Create(context *gin.Context) {
+func (c *CustomerController) Create(context *gin.Context) {
 	var customer models.Customer
 
 	if err := context.ShouldBindJSON(&customer); err != nil {
@@ -78,7 +89,7 @@ func Create(context *gin.Context) {
 		})
 	}
 	eg.Go(func() error {
-		exist := db.Where("email = ?", customer.Email).First(&customer)
+		exist := c.DB.Where("email = ?", customer.Email).First(&customer)
 		if exist.Error != nil && exist.Error == gorm.ErrRecordNotFound {
 			return nil
 		}
@@ -90,7 +101,7 @@ func Create(context *gin.Context) {
 		return
 	}
 
-	result := db.Create(&customer)
+	result := c.DB.Create(&customer)
 	if result.Error != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
 		return
@@ -99,12 +110,12 @@ func Create(context *gin.Context) {
 	context.JSON(http.StatusOK, response.NewCreateOrUpdateResponse(&customer))
 }
 
-func Detail(context *gin.Context) {
+func (c *CustomerController) Detail(context *gin.Context) {
 	var customer models.Customer
 
 	id := context.Param("id")
 
-	err := db.Where("id = ?", id).First(&customer).Error
+	err := c.DB.Where("id = ?", id).First(&customer).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		context.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -113,11 +124,11 @@ func Detail(context *gin.Context) {
 	context.JSON(http.StatusOK, response.NewDetailResponse(&customer))
 }
 
-func Update(context *gin.Context) {
+func (c *CustomerController) Update(context *gin.Context) {
 	var customer, data models.Customer
 
 	id := context.Param("id")
-	err := db.Where("id = ?", id).First(&data).Error
+	err := c.DB.Where("id = ?", id).First(&data).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		context.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -140,7 +151,7 @@ func Update(context *gin.Context) {
 	}
 	if customer.Email != data.Email {
 		eg.Go(func() error {
-			db := db.Where("email = ?", customer.Email).Session(&gorm.Session{})
+			db := c.DB.Where("email = ?", customer.Email).Session(&gorm.Session{})
 			err := db.First(&data).Error
 			if err != nil && err == gorm.ErrRecordNotFound {
 				return nil
@@ -155,7 +166,7 @@ func Update(context *gin.Context) {
 	}
 
 	customer.ID = data.ID
-	result := db.Updates(&customer)
+	result := c.DB.Updates(&customer)
 	if result.Error != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
 		return
@@ -164,17 +175,17 @@ func Update(context *gin.Context) {
 	context.JSON(http.StatusOK, response.NewCreateOrUpdateResponse(&customer))
 }
 
-func Delete(context *gin.Context) {
+func (c *CustomerController) Delete(context *gin.Context) {
 	var customer models.Customer
 
 	id := context.Param("id")
 
-	err := db.Where("id = ?", id).First(&customer).Error
+	err := c.DB.Where("id = ?", id).First(&customer).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		context.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
-	err = db.Delete(&customer).Error
+	err = c.DB.Delete(&customer).Error
 	if err != nil {
 		context.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return

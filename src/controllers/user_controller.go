@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"order-service/config"
 	"order-service/src/models"
 	response "order-service/src/responses/users"
 	"order-service/utils"
@@ -13,7 +14,17 @@ import (
 	"gorm.io/gorm"
 )
 
-func Login(context *gin.Context) {
+type UserController struct {
+	DB *gorm.DB
+}
+
+func NewUserController() UserController {
+	return UserController{
+		DB: config.NewDB(),
+	}
+}
+
+func (c *UserController) Login(context *gin.Context) {
 	var user models.User
 
 	if err := context.ShouldBindJSON(&user); err != nil {
@@ -22,7 +33,7 @@ func Login(context *gin.Context) {
 	}
 	password := user.Password
 
-	err := db.Where("username = ?", user.Username).First(&user).Error
+	err := c.DB.Where("username = ?", user.Username).First(&user).Error
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -38,17 +49,17 @@ func Login(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-func Register(c *gin.Context) {
+func (c *UserController) Register(context *gin.Context) {
 	var user models.User
 
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := context.ShouldBindJSON(&user); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	eg, _ := errgroup.WithContext(c)
+	eg, _ := errgroup.WithContext(context)
 	eg.Go(func() error {
-		exist := db.Where("username = ?", user.Username).First(&user)
+		exist := c.DB.Where("username = ?", user.Username).First(&user)
 		if exist.Error != nil && exist.Error == gorm.ErrRecordNotFound {
 			return nil
 		}
@@ -56,22 +67,22 @@ func Register(c *gin.Context) {
 	})
 
 	if err := eg.Wait(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	password, err := utils.HashPassword(user.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	user.Password = password
-	err = db.Create(&user).Error
+	err = c.DB.Create(&user).Error
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, response.NewCreateOrUpdateResponse(&user))
+	context.JSON(http.StatusOK, response.NewCreateOrUpdateResponse(&user))
 }

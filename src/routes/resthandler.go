@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewRoutes() {
+func NewRoutes() *gin.Engine {
 	route := gin.Default()
 	route.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -16,16 +16,28 @@ func NewRoutes() {
 		})
 	})
 
-	route.POST("/register", controllers.Register)
-	route.POST("/login", controllers.Login)
+	userController := controllers.NewUserController()
+	route.POST("/register", userController.Register)
+	route.POST("/login", userController.Login)
+
 	v1 := route.Group("/api/v1")
 
 	v1.Use(middleware.JwtAuthMiddleware())
-	v1.GET("customers", controllers.GetAll)
-	v1.POST("customers", controllers.Create)
-	v1.GET("customers/:id", controllers.Detail)
-	v1.PUT("customers/:id", controllers.Update)
-	v1.DELETE("customers/:id", controllers.Delete)
 
-	route.Run()
+	customerController := controllers.NewCustomerController()
+
+	v1.GET("customers", customerController.GetAll)
+	v1.POST("customers", customerController.Create)
+	v1.GET("customers/:id", customerController.Detail)
+	v1.PUT("customers/:id", customerController.Update)
+	v1.DELETE("customers/:id", customerController.Delete)
+
+	orderController := controllers.NewOrderController()
+	v1.GET("orders", orderController.GetAll)
+	v1.POST("orders", orderController.Create)
+	v1.GET("orders/:id", orderController.Detail)
+	v1.PUT("orders/:id", orderController.Update)
+	v1.DELETE("orders/:id", orderController.Delete)
+
+	return route
 }

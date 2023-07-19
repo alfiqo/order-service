@@ -9,5 +9,5 @@ func main() {
 	db := config.NewDB()
 	defer config.CloseDB(db)
 
-	routes.NewRoutes()
+	routes.NewRoutes().Run()
 }
